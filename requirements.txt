@@ -7,3 +7,4 @@ python-sat
 numpy
 beartype
 onnxruntime
+graphviz
