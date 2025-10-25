@@ -1,7 +1,7 @@
 from torch import Tensor
 import torch._C as _C
 
-class BoundedTensor(Tensor):
+class AbstractTensor(Tensor):
 
     @staticmethod
     def __new__(cls, x, ptb=None, *args, **kwargs):
@@ -18,15 +18,15 @@ class BoundedTensor(Tensor):
 
     def __repr__(self):
         if hasattr(self, 'ptb') and self.ptb is not None:
-            return f'<BoundedTensor, ptb>'
-            return f'<BoundedTensor: {super().__repr__()}, ptb>'
+            return f'<AbstractTensor, ptb>'
+            return f'<AbstractTensor: {super().__repr__()}, ptb>'
         else:
-            return f'<BoundedTensor, no ptb>'
-            return f'<BoundedTensor: {super().__repr__()}, no ptb>'
+            return f'<AbstractTensor, no ptb>'
+            return f'<AbstractTensor: {super().__repr__()}, no ptb>'
         
     def _func(self, func, *args, **kwargs):
         temp = func(*args, **kwargs)
-        new_obj = BoundedTensor([], self.ptb)
+        new_obj = AbstractTensor([], self.ptb)
         new_obj.data = temp.data
         new_obj.requires_grad = temp.requires_grad
         return new_obj

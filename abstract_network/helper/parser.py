@@ -132,7 +132,7 @@ def _parse_inputs(graph: torch.Graph, inputs : tuple[torch.Tensor], params: tupl
             'param': inputs_and_params[i][1] if i >= len(inputs) else None,
             'attr': str(n.type()),
             'input_index': input_index[i] if i < len(inputs) else None, # index among all the inputs including unused ones
-            'perturbation': perturbation, # Input nodes may have perturbation, if they are wrapped in BoundedTensor or BoundedParameters
+            'perturbation': perturbation, 
         })
     
     return nodesIn

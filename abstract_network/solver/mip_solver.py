@@ -7,9 +7,8 @@ import time
 import sys
 import os
 
-from ..operator import AbstractBase, AbstractInput, AbstractLinear
+from ..operator import AbstractBase, AbstractInput, AbstractLinear, AbstractTensor
 from ..perturbation import PerturbationLinfNorm
-from ..bound import BoundedTensor
 
 MULTIPROCESS_MODEL = None
 DEBUG = True
@@ -36,7 +35,7 @@ def build_solver_module(
     self.solver_model.setParam('MIPGapAbs', 1e-2)  # Absolute gap between lower and upper objective bound 
 
     # forward
-    x = BoundedTensor(x_U, PerturbationLinfNorm(x_L=x_L, x_U=x_U)).to(self.device)
+    x = AbstractTensor(x_U, PerturbationLinfNorm(x_L=x_L, x_U=x_U)).to(self.device)
     self(x)
     
     # create interval ranges for input and other weight parameters
@@ -112,7 +111,7 @@ def _build_solver_input(self, node: AbstractInput) -> np.ndarray:
 @torch.no_grad
 def _build_solver_layer(
     self, 
-    x: BoundedTensor, 
+    x: AbstractTensor, 
     node: AbstractBase, 
     C: torch.Tensor | None = None, 
     timeout: float | int | None = None, 

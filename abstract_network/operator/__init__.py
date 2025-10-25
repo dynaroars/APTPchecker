@@ -7,5 +7,6 @@ from .reshape import *
 from .pooling import *
 from .buffer import *
 from .linear import *
+from .tensor import *
 from .input import *
 from .relu import *

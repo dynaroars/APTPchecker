@@ -7,7 +7,6 @@ import copy
 
 from .helper import unpack_inputs, parse_module, Node
 from .constant import abstract_op_mapping
-from .bound import BoundedTensor
 from .operator import *
 
 class AbstractNetwork(nn.Module):
@@ -206,7 +205,7 @@ class AbstractNetwork(nn.Module):
                 continue
             node = self[name]
             node.value = inputs_unpacked[index]
-            if isinstance(node.value, BoundedTensor):
+            if isinstance(node.value, AbstractTensor):
                 node.perturbation = node.value.ptb
                 # print('\t- set:', node, node.perturbation)
             else:
