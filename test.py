@@ -26,8 +26,8 @@ def test_solver():
     # diff = torch.norm(y1 - y2).item()
     # print(f'{diff=}')
     # assert torch.allclose(y1, y2)
-    # abs_net.visualize('example/graph')
-    # # exit()
+    abs_net.visualize('example/graph')
+    # exit()
     
     x_L = torch.randn(input_shape, device=device)
     x_U = x_L + 1.0

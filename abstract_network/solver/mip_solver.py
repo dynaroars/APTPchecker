@@ -1,4 +1,3 @@
-from typing import TYPE_CHECKING
 from beartype import beartype
 import multiprocessing
 import gurobipy as grb
@@ -8,22 +7,23 @@ import time
 import sys
 import os
 
-
 from ..operator import AbstractBase, AbstractInput, AbstractLinear
 from ..perturbation import PerturbationLinfNorm
 from ..bound import BoundedTensor
 
-if TYPE_CHECKING:
-    import abstract_network
-    
 MULTIPROCESS_MODEL = None
 DEBUG = True
   
 @torch.no_grad
 @beartype
-def build_solver_module(self: 'abstract_network.AbstractNetwork', 
-                        x_L: torch.Tensor, x_U: torch.Tensor, C: None | torch.Tensor = None, 
-                        timeout: None | float | int = None, timeout_per_neuron:  None | float | int = None):
+def build_solver_module(
+    self, 
+    x_L: torch.Tensor, 
+    x_U: torch.Tensor, 
+    C: None | torch.Tensor = None, 
+    timeout: None | float | int = None, 
+    timeout_per_neuron: None | float | int = None,
+) -> None:
     # reset solver
     final = self.final_node()
     _reset_solver_vars(self, final)
@@ -41,10 +41,8 @@ def build_solver_module(self: 'abstract_network.AbstractNetwork',
     
     # create interval ranges for input and other weight parameters
     roots = [self[name] for name in self.root_names]
-    # print(f'{roots=}')
     for i in range(len(roots)):
         value = roots[i].forward()
-        # if isinstance(root[i], BoundInput) and not isinstance(root[i], BoundParams):
         if type(roots[i]) is AbstractInput:
             inp_gurobi_vars = _build_solver_input(self, roots[i])
             if DEBUG:
@@ -69,7 +67,7 @@ def build_solver_module(self: 'abstract_network.AbstractNetwork',
 
 @beartype
 @torch.no_grad
-def _reset_solver_vars(self: 'abstract_network.AbstractNetwork', node: AbstractBase):
+def _reset_solver_vars(self, node: AbstractBase) -> None:
     if hasattr(node, 'solver_vars'):
         print(f'[+] delete solver_vars: {node=}')
         del node.solver_vars
@@ -80,10 +78,10 @@ def _reset_solver_vars(self: 'abstract_network.AbstractNetwork', node: AbstractB
 
 @beartype
 @torch.no_grad
-def _build_solver_input(self: 'abstract_network.AbstractNetwork', node: AbstractInput) -> np.ndarray:
+def _build_solver_input(self, node: AbstractInput) -> np.ndarray:
     ## Do the input layer, which is a special case
     assert isinstance(node, AbstractInput)
-    assert isinstance(node.perturbation, PerturbationLinfNorm)
+    assert isinstance(node.perturbation, PerturbationLinfNorm), f'{node.perturbation=}'
     assert self.solver_model is not None
         
     # predefined vars will be shared within the solver model
@@ -95,9 +93,6 @@ def _build_solver_input(self: 'abstract_network.AbstractNetwork', node: Abstract
     x_L = node.perturbation.x_L
     x_U = node.perturbation.x_U
     assert len(x_L) == len(x_U) == 1
-    # remove batch dim
-    # x_L = x_L.squeeze(0)
-    # x_U = x_U.squeeze(0)
     assert torch.all(x_L <= x_U)
     
     # input vars
@@ -115,9 +110,15 @@ def _build_solver_input(self: 'abstract_network.AbstractNetwork', node: Abstract
 
 @beartype
 @torch.no_grad
-def _build_solver_layer(self: 'abstract_network.AbstractNetwork', 
-                        x: BoundedTensor, node: AbstractBase, C: torch.Tensor | None = None, 
-                        timeout: float | int | None = None, timeout_per_neuron: float | int | None = None) -> np.ndarray | torch.Tensor:
+def _build_solver_layer(
+    self, 
+    x: BoundedTensor, 
+    node: AbstractBase, 
+    C: torch.Tensor | None = None, 
+    timeout: float | int | None = None, 
+    timeout_per_neuron: float | int | None = None
+) -> np.ndarray | torch.Tensor:
+    
     if hasattr(node, 'solver_vars'):
         return node.solver_vars
     
@@ -135,23 +136,14 @@ def _build_solver_layer(self: 'abstract_network.AbstractNetwork',
         print(f'[+] build solver layer: {node=}')
 
     inp = [n_pre.solver_vars for n_pre in node.inputs]
-    # print(f'\t- {inp=}')
     
     is_final_node = False
     if C is not None and isinstance(node, AbstractLinear) and self.final_name == node.name:
         # when node is the last layer, merge node with the specification, available when weights of this layer are not perturbed
         is_final_node = True
-        solver_vars = node.build_solver(
-            *inp, 
-            model=self.solver_model, 
-            C=C, 
-        )
+        solver_vars = node.build_solver(*inp, model=self.solver_model, C=C)
     else:
-        solver_vars = node.build_solver(
-            *inp, 
-            model=self.solver_model, 
-            C=None, 
-        )
+        solver_vars = node.build_solver(*inp, model=self.solver_model, C=None)
         
     # compute bounds for vars with "inf" bounds
     lower, upper = _optimize_layer_bound(
@@ -167,17 +159,18 @@ def _build_solver_layer(self: 'abstract_network.AbstractNetwork',
 
 @beartype
 @torch.no_grad
-def _optimize_layer_bound(node: AbstractBase, model: grb.Model, timeout_per_neuron: float | int | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+def _optimize_layer_bound(
+    node: AbstractBase, 
+    model: grb.Model, 
+    timeout_per_neuron: float | int | None = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
     global MULTIPROCESS_MODEL
-    # flattened_vars = [model.getVarByName(v.VarName) for v in np.array(node.solver_vars).reshape(-1)]
     flattened_vars = np.array(node.solver_vars).reshape(-1)
     candidates = [v.VarName for v in flattened_vars if isinstance(v, grb.Var) and (v.lb == -float('inf') or v.ub == float('inf'))]
 
     if DEBUG:
         print(f'\t- optimize layer bound: {node=}')
         print(f'\t- layer vars: {node.solver_vars.shape=}')
-        # print(f'\t- {flattened_vars=}')
-        # print(f'\t- {[type(v) for v in flattened_vars]}')
         print(f'\t- {candidates=}')
         
     if len(candidates):
@@ -198,8 +191,6 @@ def _optimize_layer_bound(node: AbstractBase, model: grb.Model, timeout_per_neur
             assert var_lb <= var_ub, f'{var_lb=:.06f} {var_ub=:.06f}'
         model.update()
             
-    # if node.name == '/186':
-    #     exit()
     lower = torch.Tensor([v.lb for v in flattened_vars])
     upper = torch.Tensor([v.ub for v in flattened_vars])
     return lower, upper
@@ -207,8 +198,6 @@ def _optimize_layer_bound(node: AbstractBase, model: grb.Model, timeout_per_neur
 @beartype
 @torch.no_grad
 def _mip_solver_worker(candidate: str) -> tuple[str, float, float]:
-    """ Multiprocess MIP worker for optimizing bounds"""
-
     def get_grb_solution(mip_model):
         status = mip_model.status
         if status == 9: # Timed out. Get current bound.
