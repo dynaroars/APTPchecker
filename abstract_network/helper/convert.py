@@ -5,7 +5,7 @@ import torch.nn as nn
 import typing
 import torch
 
-from ..constant import abstract_op_mapping
+from .op_mapping import abstract_op_mapping
 from .parser import parse_module, Node
 from ..operator import *
 
