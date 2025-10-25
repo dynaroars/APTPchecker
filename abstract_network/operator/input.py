@@ -8,9 +8,7 @@ class AbstractInput(AbstractBase):
         self.value = value
         self.perturbation = perturbation
         self.input_index = input_index
-        
-        # visualize only
-        self.color = 'yellow'
+        self.color = 'yellow' # visualize only
     
     def forward(self):
         return self.value

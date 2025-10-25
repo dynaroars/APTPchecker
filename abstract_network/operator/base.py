@@ -42,13 +42,7 @@ class AbstractBase(nn.Module):
             'transA', 'transB', 'alpha_linear', 'beta_linear', # Linear
             'F_conv', 'stride', 'padding', 'dilation', 'groups', 'has_bias', # Conv
             'leaky_alpha', # ReLU
-            'axis', # Gather, Concat, Split, Softmax
-            'axes', # Squeeze, Unsqueeze, Reduce
-            'keepdim', # Reduce
-            'split', # Split
             'perm', # Transpose
-            'epsilon', 'momentum', 'use_mean', 'use_var', 'use_affine', # BatchNorm
-            'type', # Cast
             'kernel_size', 'ceil_mode', 'count_include_pad', # Pooling
             'solver_vars', # mip solver
         }
