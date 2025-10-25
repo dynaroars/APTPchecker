@@ -5,6 +5,7 @@ from .add_sub import *
 from .flatten import *
 from .reshape import *
 from .pooling import *
+from .buffer import *
 from .linear import *
 from .input import *
 from .relu import *
