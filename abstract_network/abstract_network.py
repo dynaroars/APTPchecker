@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from beartype import beartype
 from torch import nn
 import typing
@@ -24,7 +23,6 @@ class AbstractNetwork(nn.Module):
         object.__setattr__(self, 'ori_state_dict', copy.deepcopy(model.state_dict()))
         
         default_input = torch.zeros(input_shape, device=device)
-        # default_output = model(default_input)
         self._convert(model, default_input)
         
     # DONE
@@ -102,8 +100,6 @@ class AbstractNetwork(nn.Module):
             try:
                 if nodesOP[n].op in abstract_op_mapping:
                     op = abstract_op_mapping[nodesOP[n].op]
-                # elif nodesOP[n].op.startswith('aten::ATen'):
-                    # op = eval(f'AbstractATen{attr["operator"].capitalize()}')
                 elif nodesOP[n].op.startswith('onnx::'):
                     op = eval(f'Abstract{nodesOP[n].op[6:]}')
                 else:
@@ -125,13 +121,11 @@ class AbstractNetwork(nn.Module):
                 )
             )
             
-            # visualize only
-            nodesOP[n].bound_node.ori_name = nodesOP[n].op
+            nodesOP[n].bound_node.ori_name = nodesOP[n].op # visualize only
             
         # assign node name
         for node in nodesIn + nodesOP:
             node.bound_node.name = node.name
-            # print(node.bound_node.name)
 
         nodes_dict = {}
         for node in nodesOP + nodesIn:
@@ -143,24 +137,24 @@ class AbstractNetwork(nn.Module):
         return nodesOP, nodesIn, nodesOut, template
         
         
-    # DONE
-    def _get_node_name_map(self):
-        """Build a dict with {ori_name: name, name: ori_name}"""
-        self.node_name_map = {}
-        for node in self.nodes():
-            if isinstance(node, (AbstractInput, AbstractParameter)):
-                for p in list(node.named_parameters()):
-                    if node.ori_name not in self.node_name_map:
-                        name = f'{node.name}.{p[0]}'
-                        self.node_name_map[node.ori_name] = name
-                        self.node_name_map[name] = node.ori_name
-                for p in list(node.named_buffers()):
-                    if node.ori_name not in self.node_name_map:
-                        name = f'{node.name}.{p[0]}'
-                        self.node_name_map[node.ori_name] = name
-                        self.node_name_map[name] = node.ori_name
+    # # DONE
+    # def _get_node_name_map(self):
+    #     """Build a dict with {ori_name: name, name: ori_name}"""
+    #     self.node_name_map = {}
+    #     for node in self.nodes():
+    #         if isinstance(node, (AbstractInput, AbstractParameter)):
+    #             for p in list(node.named_parameters()):
+    #                 if node.ori_name not in self.node_name_map:
+    #                     name = f'{node.name}.{p[0]}'
+    #                     self.node_name_map[node.ori_name] = name
+    #                     self.node_name_map[name] = node.ori_name
+    #             for p in list(node.named_buffers()):
+    #                 if node.ori_name not in self.node_name_map:
+    #                     name = f'{node.name}.{p[0]}'
+    #                     self.node_name_map[node.ori_name] = name
+    #                     self.node_name_map[name] = node.ori_name
                         
-        # print(self.node_name_map)
+    #     # print(self.node_name_map)
 
 
     @beartype
@@ -168,26 +162,20 @@ class AbstractNetwork(nn.Module):
         nodesOP, nodesIn, nodesOut, template = self._convert_nodes(model, global_input)
         global_input = self._to(global_input, self.device)
         global_input = (global_input,)
-        while True:
-            self.build_graph(nodesOP, nodesIn, nodesOut, template)
-            self.forward(*global_input)  # running means/vars changed
-            
-            nodesOP, nodesIn, finished = self._split_complex(nodesOP, nodesIn)
-            if finished:
-                break
-            
-        self._load_state_dict()
+        self.build_graph(nodesOP, nodesIn, nodesOut, template)
+        self.forward(*global_input)  # running means/vars changed
+        # self._load_state_dict()
     
-    # DONE
-    def _load_state_dict(self):
-        if hasattr(self, 'ori_state_dict'):
-            self._get_node_name_map()
-            ori_state_dict_mapped = OrderedDict()
-            for k, v in self.ori_state_dict.items():
-                if k in self.node_name_map:
-                    ori_state_dict_mapped[self.node_name_map[k]] = v
-                    # print(f'Load: {k} {self.node_name_map[k]}')
-            self.load_state_dict(ori_state_dict_mapped)
+    # # DONE
+    # def _load_state_dict(self):
+    #     if hasattr(self, 'ori_state_dict'):
+    #         self._get_node_name_map()
+    #         ori_state_dict_mapped = OrderedDict()
+    #         for k, v in self.ori_state_dict.items():
+    #             if k in self.node_name_map:
+    #                 ori_state_dict_mapped[self.node_name_map[k]] = v
+    #                 # print(f'Load: {k} {self.node_name_map[k]}')
+    #         self.load_state_dict(ori_state_dict_mapped)
     
     def _clear_attr(self):
         for l in self.nodes():
@@ -199,7 +187,6 @@ class AbstractNetwork(nn.Module):
     def set_input(self, *x):
         self._clear_attr()
         inputs_unpacked = unpack_inputs(x)
-        # print('[+] Set new input', type(inputs_unpacked[0]), self.input_name, self.input_index)
         for name, index in zip(self.input_name, self.input_index):
             if index is None:
                 continue
@@ -207,24 +194,19 @@ class AbstractNetwork(nn.Module):
             node.value = inputs_unpacked[index]
             if isinstance(node.value, AbstractTensor):
                 node.perturbation = node.value.ptb
-                # print('\t- set:', node, node.perturbation)
             else:
                 node.perturbation = None
     
     @beartype
     def get_forward_value(self, node: AbstractBase):
         if getattr(node, 'forward_value', None) is not None:
-            # print(f'\t - Skip: {node}')
             return node.forward_value
-
         inputs = [self.get_forward_value(inp) for inp in node.inputs]
-
         node.input_shape = inputs[0].shape if len(inputs) > 0 else None
         fv = node.forward(*inputs)
         if isinstance(fv, (torch.Size, tuple)):
             fv = torch.tensor(fv, device=self.device)
         node.forward_value = fv
-        # print('set foward value', node.forward_value)
         node.output_shape = fv.shape
         # print(f'[+] Forward:  {node}')# {node.input_shape=} {node.output_shape=}')
         return fv
@@ -237,9 +219,6 @@ class AbstractNetwork(nn.Module):
             final_node_name = self.output_name[0]
         return self.get_forward_value(self[final_node_name])
         
-    def _split_complex(self, nodesOP, nodesIn):
-        finished = True
-        return nodesOP, nodesIn, finished
         
     # DONE
     @beartype
@@ -270,7 +249,6 @@ class AbstractNetwork(nn.Module):
     # DONE
     def __getitem__(self, name):
         module = self._modules[name]
-        # We never create modules that are None, the assert fixes type hints
         assert module is not None
         return module
     
@@ -279,16 +257,6 @@ class AbstractNetwork(nn.Module):
         
     def final_node(self):
         return self[self.final_name]
-    
-    @beartype
-    def get_hidden_bounds(self, names: list[str]) -> tuple[dict, dict]:
-        lower_bounds, upper_bounds = {}, {}
-        for name in names:
-            assert self[name].lower is not None
-            assert self[name].upper is not None
-            lower_bounds[name] = self[name].lower
-            upper_bounds[name] = self[name].upper
-        return lower_bounds, upper_bounds
     
     
     from .helper import build_graph, visualize

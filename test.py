@@ -18,14 +18,14 @@ def test_solver():
     
     abs_net = AbstractNetwork(model, input_shape, device)
     
-    # x = torch.randn(input_shape, device=device)
-    # y1 = model(x)
-    # y2 = abs_net(x)
-    # print(f'{y1=}')
-    # print(f'{y2=}')
-    # diff = torch.norm(y1 - y2).item()
-    # print(f'{diff=}')
-    # assert torch.allclose(y1, y2)
+    x = torch.randn(input_shape, device=device)
+    y1 = model(x)
+    y2 = abs_net(x)
+    print(f'{y1=}')
+    print(f'{y2=}')
+    diff = torch.norm(y1 - y2).item()
+    print(f'{diff=}')
+    assert torch.allclose(y1, y2)
     abs_net.visualize('example/graph')
     # exit()
     
