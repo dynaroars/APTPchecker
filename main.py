@@ -37,8 +37,8 @@ def main():
     net, input_shape, _ = parse_onnx(args.onnx)
     print(net)
     
-    for objective in objectives:
-        
+    while len(objectives):
+        objective = objectives.pop(1)
         print(f'Extract ONNX and APTP in {time.time() - START_TIME:.04f} seconds')
         
         proof_checker = ProofChecker(
@@ -51,9 +51,7 @@ def main():
         status = proof_checker.prove(
             proof=proof, 
             batch=args.batch, 
-            expand_factor=2.0 if args.use_pruning else 1.0, 
             timeout=args.timeout,
-            refine=args.use_stabilize,
         )
         
         if status != ProofReturnStatus.CERTIFIED:

@@ -8,9 +8,10 @@ from abstract_network import AbstractNetwork
 
 def test_solver():
     device = 'cpu'
-    # onnx_path = 'data/fnn.onnx'
     # onnx_path = 'data/cnn.onnx'
-    onnx_path = 'example/resnet.onnx'
+    # onnx_path = 'example/resnet.onnx'
+    # onnx_path = 'example/fnn.onnx'
+    onnx_path = 'example/sample.onnx'
     # load instance
     model, input_shape, output_shape = parse_onnx(onnx_path)
     model.eval()
@@ -31,15 +32,19 @@ def test_solver():
     
     x_L = torch.randn(input_shape, device=device)
     x_U = x_L + 1.0
+    C = torch.tensor([1.0, 0.0], device=device).view(1, 1, -1)
     C = None
 
-
     abs_net.build_solver_module(
-        x_L=x_L, 
-        x_U=x_U, 
+        x_L=x, 
+        x_U=x, 
         C=C,
-        timeout_per_neuron=2.5,
+        timeout=2.5,
     )
+    print(f'{y1=}')
+    
+    print(abs_net.split_nodes())
+    print(abs_net.final_node().solver_vars)
     
 if __name__ == "__main__":
     test_solver()

@@ -9,6 +9,7 @@ class AbstractRelu(AbstractBase):
     def __init__(self, attr=None, inputs=None, output_index=0, options=None):
         super().__init__(attr, inputs, output_index, options)
         self.leaky_alpha = attr.get('alpha', 0)
+        self.splittable = True
         
     def forward(self, x):
         if self.leaky_alpha > 0:

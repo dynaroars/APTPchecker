@@ -19,6 +19,7 @@ class AbstractBase(nn.Module):
         self.output_index = output_index
         self.output_name = []
         self.device = attr.get('device')
+        self.splittable = False # node can be split during branch and bound
         
         # node 
         self.name = None # node name for retrieval/debug

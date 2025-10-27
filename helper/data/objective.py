@@ -41,9 +41,8 @@ class DnfObjectives:
     "List of CNF objectives"
     
     @beartype
-    def __init__(self, objectives: list[Objective], input_shape: tuple) -> None:
+    def __init__(self, objectives: list[Objective]) -> None:
         self.objectives = objectives
-        self.input_shape = input_shape
         self._extract()
         self.num_used = 0
         

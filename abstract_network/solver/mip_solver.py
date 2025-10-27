@@ -21,7 +21,6 @@ def build_solver_module(
     x_U: torch.Tensor, 
     C: None | torch.Tensor = None, 
     timeout: None | float | int = None, 
-    timeout_per_neuron: None | float | int = None,
 ) -> None:
     # reset solver
     final = self.final_node()
@@ -51,14 +50,7 @@ def build_solver_module(
             roots[i].solver_vars = value
             
     # backward propagate every layer including last layer
-    _build_solver_layer(
-        self, 
-        x=x, 
-        node=final, 
-        C=C, 
-        timeout=timeout, 
-        timeout_per_neuron=timeout_per_neuron,
-    )
+    _build_solver_layer(self, x=x, node=final, C=C, timeout=timeout)
             
     # update final model
     self.solver_model.update()
@@ -115,21 +107,13 @@ def _build_solver_layer(
     node: AbstractBase, 
     C: torch.Tensor | None = None, 
     timeout: float | int | None = None, 
-    timeout_per_neuron: float | int | None = None
 ) -> np.ndarray | torch.Tensor:
     
     if hasattr(node, 'solver_vars'):
         return node.solver_vars
     
     for n in node.inputs:
-        _build_solver_layer(
-            self, 
-            x=x, 
-            node=n, 
-            C=C, 
-            timeout=timeout, 
-            timeout_per_neuron=timeout_per_neuron,
-        )
+        _build_solver_layer(self, x=x, node=n, C=C, timeout=timeout)
     
     if DEBUG:
         print(f'[+] build solver layer: {node=}')
@@ -145,14 +129,10 @@ def _build_solver_layer(
         solver_vars = node.build_solver(*inp, model=self.solver_model, C=None)
         
     # compute bounds for vars with "inf" bounds
-    lower, upper = _optimize_layer_bound(
-        node, 
-        model=self.solver_model, 
-        timeout_per_neuron=timeout_per_neuron,
-    )
-    
-    node.lower = lower.view(node.output_shape) if not is_final_node else lower[None]
-    node.upper = upper.view(node.output_shape) if not is_final_node else upper[None]
+    if not is_final_node:
+        lower, upper = _optimize_layer_bound(node=node, model=self.solver_model, timeout_per_neuron=timeout)
+        node.lower = lower.view(node.output_shape)
+        node.upper = upper.view(node.output_shape)
     return solver_vars
 
 

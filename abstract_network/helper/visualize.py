@@ -17,7 +17,8 @@ def visualize(self, output_path):
                 <TR><TD><FONT FACE="Courier" COLOR="black" >{node.name}</FONT></TD></TR>
                 {ori_name_line}
                 <TR><TD><FONT FACE="Courier" COLOR="blue" >{node.__class__.__name__}</FONT></TD></TR>
-                <TR><TD><FONT FACE="Courier" COLOR="black" >{tuple(node.output_shape) if node.output_shape is not None else None}</FONT></TD></TR>
+                <TR><TD><FONT FACE="Courier" COLOR="black" >in: {tuple(node.input_shape) if node.input_shape is not None else None}</FONT></TD></TR>
+                <TR><TD><FONT FACE="Courier" COLOR="black" >out: {tuple(node.output_shape) if node.output_shape is not None else None}</FONT></TD></TR>
             </TABLE>
         >"""
         if node.__class__.__name__ in ["AbstractParameter", "AbstractConstant", "AbstractBuffer"]: 

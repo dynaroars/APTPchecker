@@ -6,7 +6,7 @@ import numpy as np
 import tqdm
 import re
 
-from ..data.objective import Objective
+from ..data.objective import Objective, DnfObjectives
 
 @beartype
 def read_statements(filename: str):
@@ -334,7 +334,7 @@ def read_hidden(filename: str) -> list:
     return proof
 
 @beartype
-def read_aptp(filename: str) -> tuple[list[Objective], list]:
+def read_aptp(filename: str) -> tuple[DnfObjectives, list]:
     print(f'\n############ Extract APTP ############\n')
     assert filename.endswith('.aptp'), filename
     # extract proof tree
@@ -357,4 +357,4 @@ def read_aptp(filename: str) -> tuple[list[Objective], list]:
     with Solver(bootstrap_with=cnf) as solver:
         assert not solver.solve(), f'Invalid proof syntax: {proof=}'
     
-    return objectives, proof
+    return DnfObjectives(objectives), proof

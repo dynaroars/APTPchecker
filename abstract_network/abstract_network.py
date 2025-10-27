@@ -26,8 +26,7 @@ class AbstractNetwork(nn.Module):
     @beartype
     def convert(self, model, global_input: torch.Tensor):
         nodesOP, nodesIn, nodesOut, template = self.convert_nodes(model, global_input)
-        global_input = self._to(global_input, self.device)
-        global_input = (global_input,)
+        global_input = (self._to(global_input, self.device),)
         self.build_graph(nodesOP, nodesIn, nodesOut, template)
         self.forward(*global_input)  # running means/vars changed
         # self._load_state_dict()
@@ -145,6 +144,9 @@ class AbstractNetwork(nn.Module):
     def final_node(self):
         return self[self.final_name]
     
+    def split_nodes(self):
+        """Activation functions that can be split during branch and bound."""
+        return [n for n in self.nodes() if n.splittable]
     
     from .helper import build_graph, visualize, convert_nodes
     from .solver.mip_solver import build_solver_module 
