@@ -11,7 +11,7 @@ from ..operator import AbstractBase, AbstractInput, AbstractLinear, AbstractTens
 from ..perturbation import PerturbationLinfNorm
 
 MULTIPROCESS_MODEL = None
-DEBUG = True
+DEBUG = False
   
 @torch.no_grad
 @beartype

@@ -54,9 +54,9 @@ def _proof_worker_impl(candidate):
     can_model.update()
     can_model.optimize()
 
-    print(f'Solved leaf: {can_node = } in {time.time() - start_solve_time} seconds, {can_model.NumVars=}, {can_model.NumConstrs=}')
+    print(f'[+] Solved leaf: {can_node = } in {time.time() - start_solve_time} seconds, {can_model.NumVars=}, {can_model.NumConstrs=}')
         
-    assert can_model.status in ALLOWED_GUROBI_STATUS_CODES, print(f'[!] Error: {can_model=} {can_model.status=} {can_node.history=}')
+    assert can_model.status in ALLOWED_GUROBI_STATUS_CODES, f'[!] Error: {can_model=} {can_model.status=} {can_node.history=}'
     if can_model.status == grb.GRB.USER_OBJ_LIMIT: # early stop
         return 1e-5
     if can_model.status == grb.GRB.INFEASIBLE: # infeasible
@@ -104,7 +104,7 @@ class ProofChecker:
             C=c_to_use,
             timeout=timeout_per_neuron, 
         )
-        print(f'Build coresolver time: {time.time() - tic=}')
+        print(f'[+] Build coresolver time: {time.time() - tic=}')
         return self.abs_net.solver_model
         
     def set_objective(self, model, objective):
@@ -138,7 +138,7 @@ class ProofChecker:
         if time.time() - start_time > timeout:
             return ProofReturnStatus.TIMEOUT 
         
-        print(f"Processing: {len(proof)=}")
+        print(f"[+] Processing: {len(proof)=}")
         current_proof_queue = ProofQueue(proofs=proof)
         MULTIPROCESS_MODEL = shared_solver_model
         
@@ -150,7 +150,7 @@ class ProofChecker:
             
             nodes = current_proof_queue.get(batch)
             candidates = [(node, current_proof_queue, self.var_mapping) for node in nodes]
-            print(f'Proving {len(candidates)=}')
+            print(f'[+] Proving {len(candidates)=}')
             max_worker = min(len(candidates), os.cpu_count() // 2)
             with multiprocessing.Pool(max_worker) as pool:
                 results = pool.map(_proof_worker_node, candidates, chunksize=1)
