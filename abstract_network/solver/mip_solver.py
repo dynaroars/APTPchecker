@@ -26,6 +26,13 @@ def build_solver_module(
     final = self.final_node()
     _reset_solver_vars(self, final)
     
+    if DEBUG:
+        print('[+] Build solver module:')
+        print(f'{x_L=}')
+        print(f'{x_U=}')
+        print(f'{C=}')
+        print(f'{timeout=}')
+    
     # initialize solver
     self.solver_model = grb.Model('`MIP solver`')
     self.solver_model.setParam('OutputFlag', False)

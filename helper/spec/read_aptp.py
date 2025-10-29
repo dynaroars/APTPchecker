@@ -340,21 +340,21 @@ def read_aptp(filename: str) -> tuple[DnfObjectives, list]:
     # extract proof tree
     proof = read_hidden(filename)
     print(f'{proof=}')
-    assert len(proof) > 0
     
     # extract input and output properties
     in_out = read_input_output(filename)
-    assert len(in_out) == 1
     
-    bounds = in_out[0][0]
     objectives = []
-    for out in in_out[0][1]:
-        objective = Objective((bounds, out))
+    for out in in_out:
+        bounds = out[0]
+        for prop_i in out[1]:
+            objective = Objective((bounds, prop_i))
         objectives.append(objective)
         
     # validate
-    cnf = CNF(from_clauses=proof)
-    with Solver(bootstrap_with=cnf) as solver:
-        assert not solver.solve(), f'Invalid proof syntax: {proof=}'
+    if len(proof):
+        cnf = CNF(from_clauses=proof)
+        with Solver(bootstrap_with=cnf) as solver:
+            assert not solver.solve(), f'Invalid proof syntax: {proof=}'
     
     return DnfObjectives(objectives), proof

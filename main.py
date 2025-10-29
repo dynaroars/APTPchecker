@@ -36,6 +36,8 @@ def main():
     objectives, proof = read_aptp(args.aptp)
     net, input_shape, _ = parse_onnx(args.onnx)
     print(net)
+    print(f'{len(proof)=}')
+    print(f'{len(objectives)=}')
     
     while len(objectives):
         objective = objectives.pop(1)
