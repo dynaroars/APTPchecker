@@ -39,7 +39,7 @@ def _proof_worker_impl(candidate):
         relu_var = can_model.getVarByName(f"ReLU{relu_name}_{neuron_idx}")
         print(f'\t- Found: {pre_var=}, {relu_var=}, {literal=}')
         assert pre_var is not None
-        assert relu_var is not None
+        # assert relu_var is not None
         if relu_var is None: # var is None if relu is stabilized
             assert pre_var.lb * pre_var.ub >= 0, print('[!] Missing constraints')
             if (literal < 0 and pre_var.lb > 0) or (literal > 0 and pre_var.ub <= 0):
