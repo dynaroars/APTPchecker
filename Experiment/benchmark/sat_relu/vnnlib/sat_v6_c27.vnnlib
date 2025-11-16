@@ -1,0 +1,31 @@
+; NeuroCodeBench 2.0: SAT ReLU instance with 6 variables and SAT verdict
+
+; Input Variables
+(declare-const X_0 Real)
+(declare-const X_1 Real)
+(declare-const X_2 Real)
+(declare-const X_3 Real)
+(declare-const X_4 Real)
+(declare-const X_5 Real)
+
+; Output Variables
+(declare-const Y_0 Real)
+(declare-const Y_1 Real)
+
+; Input Constraints
+(assert (<= X_0 1.0))
+(assert (>= X_0 0.0))
+(assert (<= X_1 1.0))
+(assert (>= X_1 0.0))
+(assert (<= X_2 1.0))
+(assert (>= X_2 0.0))
+(assert (<= X_3 1.0))
+(assert (>= X_3 0.0))
+(assert (<= X_4 1.0))
+(assert (>= X_4 0.0))
+(assert (<= X_5 1.0))
+(assert (>= X_5 0.0))
+
+; Output Constraints
+(assert (>= Y_0 1.0))
+(assert (<= Y_1 0.0))

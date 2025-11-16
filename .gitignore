@@ -1,9 +1,8 @@
-Experiment/
+vnncomp2025_benchmarks/
 old/
 aptpvenv/
 backup/
 scripts/
-Experiment/verifier/marabou_old/
 
 *.log
 *.command
