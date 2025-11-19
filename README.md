@@ -100,3 +100,7 @@ python3 main.py --onnx example/sample.onnx --aptp example/sample.aptp
 python3 main.py --onnx example/sample.onnx --aptp example/sample_input.aptp
 ```
 
+
+```bash
+python3 main.py --net example/proof/sample.onnx --spec example/proof/sample.vnnlib --setting_file example/proof/proof_setting.json --device cpu --reasoning_output example/aptp/ --force_split input
+```

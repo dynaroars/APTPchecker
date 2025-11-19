@@ -8,3 +8,16 @@ numpy
 beartype
 onnxruntime
 graphviz
+# neuralsat
+beartype
+gurobipy
+onnxsim
+packaging
+sortedcontainers
+# abcrown
+pyyaml
+appdirs
+graphviz
+onnxoptimizer
+skl2onnx
+psutil
