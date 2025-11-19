@@ -4,6 +4,8 @@ old/
 aptpvenv/
 backup/
 scripts/
+result/
+
 
 *.log
 *.command
