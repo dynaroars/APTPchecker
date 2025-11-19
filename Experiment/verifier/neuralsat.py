@@ -25,6 +25,7 @@ def verify(args, onnx_path, vnnlib_path, output_path, timeout):
     cmd += f' --setting_file {setting_path}'
     cmd += f' --reasoning_output {output_path}'
     cmd += f' --force_split {args.split_type}'
+    cmd += f' --device {args.device}'
     cmd += f' --export_runtime'
     cmd += f' > {log_path} 2>&1'
 

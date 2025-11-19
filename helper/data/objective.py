@@ -2,9 +2,6 @@ from beartype import beartype
 import numpy as np
 import torch
 
-from ..network.read_onnx import custom_quirks
-
-
 class Objective:
     
     "Single objective in CNF"
@@ -27,8 +24,6 @@ class Objective:
         prop_mat, prop_rhs = mat
         self.cs = torch.tensor(prop_mat, dtype=self.dtype)
         self.rhs = torch.tensor(prop_rhs, dtype=self.dtype)
-        if custom_quirks.get('Softmax', {}).get('skip_last_layer', False):
-            assert (self.rhs == 0).all()
     
     
     @beartype

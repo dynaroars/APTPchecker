@@ -49,9 +49,9 @@ def main():
         for instance in instances:
             onnx, vnnlib, _ = instance.strip().split(',')
             onnx_path = os.path.abspath(os.path.join(benchmark_dir, onnx))
-            assert os.path.exists(onnx_path), f"Onnx file does not exist: {onnx_path=}"
+            assert os.path.exists(onnx_path), f"ONNX file does not exist: {onnx_path=}"
             vnnlib_path = os.path.abspath(os.path.join(benchmark_dir, vnnlib))
-            assert os.path.exists(vnnlib_path), f"Vnnlib file does not exist: {vnnlib_path=}"
+            assert os.path.exists(vnnlib_path), f"VNNLIB file does not exist: {vnnlib_path=}"
             output_path = os.path.abspath(os.path.join(output_dir, f'{os.path.splitext(os.path.basename(onnx))[0]}_{os.path.splitext(os.path.basename(vnnlib))[0]}'))
             # print(f'{onnx_path=}')
             # print(f'{vnnlib_path=}')

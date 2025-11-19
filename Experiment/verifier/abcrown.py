@@ -10,12 +10,10 @@ def verify(args, onnx_path, vnnlib_path, output_path, timeout):
     
     os.chdir(args.verifier_dir)
     
-    if args.benchmark_type == 'time_invariant':
-        setting_path = os.path.join(args.home_dir, 'verifier/config/abcrown/time_invariant.yaml')
-    elif args.benchmark_type == 'time_varying':
-        setting_path = os.path.join(args.home_dir, 'verifier/config/abcrown/time_varying.yaml')
-    else:
-        raise ValueError(f'Invalid benchmark type: {args.benchmark_type=}')
+    if args.split_type == 'input':
+        setting_path = os.path.join(args.home_dir, 'verifier/config/abcrown/input.yaml')
+    elif args.split_type == 'hidden':
+        setting_path = os.path.join(args.home_dir, 'verifier/config/abcrown/hidden.yaml')
     
     assert os.path.exists(setting_path), f"Setting file does not exist: {setting_path=}"
     

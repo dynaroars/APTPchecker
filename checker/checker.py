@@ -15,7 +15,8 @@ ALLOWED_GUROBI_STATUS_CODES = [
     grb.GRB.OPTIMAL, 
     grb.GRB.INFEASIBLE, 
     grb.GRB.USER_OBJ_LIMIT, 
-    grb.GRB.TIME_LIMIT
+    grb.GRB.TIME_LIMIT,
+    grb.GRB.INF_OR_UNBD, # TODO: investigate this
 ]
 
 def get_model_params(model):
@@ -37,29 +38,32 @@ def _proof_worker_impl(candidate):
         relu_name, pre_relu_name, neuron_idx = can_var_mapping[abs(literal)]
         pre_var = can_model.getVarByName(f"lay{pre_relu_name}_{neuron_idx}")
         relu_var = can_model.getVarByName(f"ReLU{relu_name}_{neuron_idx}")
-        print(f'\t- Found: {pre_var=}, {relu_var=}, {literal=}')
+        print(f'\t- Found: {literal=}, {pre_var=}, {relu_var=}, {pre_var.lb=:.06f}, {pre_var.ub=:.06f}')
         assert pre_var is not None
         # assert relu_var is not None
         if relu_var is None: # var is None if relu is stabilized
             assert pre_var.lb * pre_var.ub >= 0, print('[!] Missing constraints')
-            if (literal < 0 and pre_var.lb > 0) or (literal > 0 and pre_var.ub <= 0):
+            if (literal < 0 and pre_var.lb >= 0) or (literal > 0 and pre_var.ub <= 0):
+                print(f'\t\t\t- Unsat: {literal=}, {pre_var.lb=:.06f}, {pre_var.ub=:.06f}')
                 return float('inf') # always unsat
         else:
             if literal > 0: # active
+                pre_var.lb = 0
                 can_model.addConstr(pre_var == relu_var)
             else: # inactive
+                pre_var.ub = 0
                 relu_var.lb = 0
                 relu_var.ub = 0
         # TODO: remove all other relu_var relevant constraints
     can_model.update()
     can_model.optimize()
 
-    print(f'[+] Solved leaf: {can_node = } in {time.time() - start_solve_time} seconds, {can_model.NumVars=}, {can_model.NumConstrs=}')
+    print(f'[+] Solved leaf: {can_node = } in {time.time() - start_solve_time} seconds, {can_model.NumVars=}, {can_model.NumConstrs=} {can_model.status=}')
         
     assert can_model.status in ALLOWED_GUROBI_STATUS_CODES, f'[!] Error: {can_model=} {can_model.status=} {can_node.history=}'
     if can_model.status == grb.GRB.USER_OBJ_LIMIT: # early stop
         return 1e-5
-    if can_model.status == grb.GRB.INFEASIBLE: # infeasible
+    if can_model.status in [grb.GRB.INFEASIBLE, grb.GRB.INF_OR_UNBD]: # infeasible
         return float('inf')
     if can_model.status == grb.GRB.TIME_LIMIT: # timeout
         return can_model.ObjBound

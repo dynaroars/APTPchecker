@@ -2,6 +2,6 @@
     "use_mip_verify": false,
     "use_mip_tightening": false,
     "use_restart": false,
-    "use_attack": false,
+    "use_attack": true,
     "use_save_reasoning_step": true
 }
