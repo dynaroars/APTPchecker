@@ -5,6 +5,7 @@ aptpvenv/
 backup/
 scripts/
 result/
+result_bug/
 
 
 *.log
