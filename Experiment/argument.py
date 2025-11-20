@@ -10,7 +10,7 @@ def parse_args():
     p.add_argument("--verifier", type=str, required=True, choices=["neuralsat", "abcrown", "marabou"])
     p.add_argument("--split_type", type=str, required=True, choices=["input", "hidden"])
     p.add_argument("--verifier_dir", type=str, required=True, help="Verifier directory")
-    p.add_argument("--timeout", type=int, default=500, help="Timeout")
+    p.add_argument("--timeout", type=int, default=100, help="Timeout")
     p.add_argument("--device", type=str, default="cuda:0", help="Device to run the verifier")
     p.add_argument("--seed", type=int, default=42, help="Random seed")
     args = p.parse_args()
